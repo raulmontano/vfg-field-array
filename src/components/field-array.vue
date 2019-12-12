@@ -30,6 +30,7 @@
           :model='item'
           :schema='generateSchema(value, schema.items, index)'
           :formOptions='formOptions'
+          @removeItem='removeElement(index)'
           @model-updated='modelUpdated'/>
       </span>
       <span v-else-if="schema.itemContainerComponent">
