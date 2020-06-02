@@ -30,7 +30,7 @@
           :model='item'
           :schema='generateSchema(value, schema.items, index)'
           :formOptions='formOptions'
-          @removeItem='removeElement(index)'
+          @removeItem='removeElement(index,item)'
           @model-updated='modelUpdated'/>
       </span>
       <span v-else-if="schema.itemContainerComponent">
@@ -53,7 +53,7 @@
             type="button"
             :value="removeElementButtonLabel"
             @click="removeElement(index)"
-            v-if='schema.showRemoveButton'/>
+            v-if='showRemoveButton()'/>
         </component>
       </span>
       <input type="text" v-model="value[index]" :class="schema.itemFieldClasses" :name='generateInputName(index)' :id="fieldId + index" v-else/>
@@ -73,10 +73,10 @@
         type="button"
         :value="removeElementButtonLabel"
         :class="schema.removeElementButtonClasses"
-        @click="removeElement(index)"
-        v-if='schema.showRemoveButton'/>
+        @click="removeElement(index,item)"
+        v-if='showRemoveButton()'/>
     </div>
-    <input type="button" :value="newElementButtonLabel" :class="schema.newElementButtonLabelClasses" @click="newElement"/>
+    <input type="button" :value="newElementButtonLabel" :class="schema.newElementButtonLabelClasses" v-if="showAddButton()" @click="newElement" />
   </div>
 </template>
 
@@ -89,6 +89,8 @@
   import forEach from 'lodash.foreach';
   import cloneDeep from 'lodash.clonedeep';
   import Vue from "vue";
+
+  import { get as isNil } from "lodash";
 
   export default {
     mixins: [VueFormGenerator.abstractField],
@@ -127,6 +129,23 @@
       }
     },
     methods: {
+      // Get disabled attr of field
+      showRemoveButton() {
+
+        if (isFunction(this.schema.showRemoveButton)) return this.schema.showRemoveButton.call(this, this.model);
+
+        if (isNil(this.schema.showRemoveButton)) return true;
+
+        return this.schema.showRemoveButton;
+      },
+      showAddButton() {
+
+        if (isFunction(this.schema.showAddButton)) return this.schema.showAddButton.call(this, this.model);
+
+        if (isNil(this.schema.showAddButton)) return true;
+
+        return this.schema.showAddButton;
+      },
       generateSchema(rootValue, schema, index) {
         let newSchema = {...schema};
 
@@ -167,8 +186,8 @@
 
         this.value = [...value];
       },
-      removeElement(index) {
-        
+      removeElement(index,item) {
+
         let value = this.value;
 
         value.splice(index, 1);
